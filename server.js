@@ -1,10 +1,122 @@
 const WebSocket = require('ws');
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const url = require('url');
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
-// Create HTTP server
-const server = http.createServer();
+// Create HTTP server that serves static files
+const server = http.createServer((req, res) => {
+    // Parse URL to separate path from query string
+    const parsedUrl = url.parse(req.url, true);
+    const pathname = parsedUrl.pathname;
+    const query = parsedUrl.query;
+    
+    console.log('HTTP Request:', req.url);
+    console.log('Pathname:', pathname);
+    
+    // API endpoint to check if a user is presenting
+    if (pathname === '/api/is-presenting') {
+        const userId = query.userId;
+        
+        if (!userId) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'userId parameter required' }));
+            return;
+        }
+        
+        const roomId = `room_${userId}`;
+        const room = rooms.get(roomId);
+        const isPresenting = room && room.presenter !== null;
+        const viewerCount = room ? room.users.size : 0;
+        
+        res.writeHead(200, { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'  // Allow CORS for Gamble Galaxy
+        });
+        res.end(JSON.stringify({ 
+            userId,
+            isPresenting,
+            roomId,
+            viewerCount: isPresenting ? viewerCount : 0
+        }));
+        return;
+    }
+    
+    // API endpoint to get all active presenters
+    if (pathname === '/api/active-presenters') {
+        const activePresenters = [];
+        
+        rooms.forEach((room, roomId) => {
+            if (room.presenter) {
+                const presenter = room.users.get(room.presenter);
+                if (presenter) {
+                    // Extract userId from roomId (format: room_123)
+                    const userId = roomId.replace('room_', '');
+                    activePresenters.push({
+                        userId,
+                        username: presenter.username,
+                        roomId,
+                        viewerCount: room.users.size
+                    });
+                }
+            }
+        });
+        
+        res.writeHead(200, { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'  // Allow CORS for Gamble Galaxy
+        });
+        res.end(JSON.stringify({ 
+            count: activePresenters.length,
+            presenters: activePresenters
+        }));
+        return;
+    }
+    
+    // Handle CORS preflight requests
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type'
+        });
+        res.end();
+        return;
+    }
+    
+    // Determine which file to serve based on pathname only
+    let filePath;
+    if (pathname === '/' || pathname === '/index.html') {
+        filePath = path.join(__dirname, 'index.html');
+    } else if (pathname === '/client.js') {
+        filePath = path.join(__dirname, 'client.js');
+    } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('404 Not Found');
+        return;
+    }
+
+    // Read and serve the file
+    fs.readFile(filePath, (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('500 Internal Server Error');
+            return;
+        }
+
+        // Set content type based on file extension
+        const ext = path.extname(filePath);
+        const contentType = ext === '.html' ? 'text/html' : 
+                          ext === '.js' ? 'application/javascript' : 
+                          'text/plain';
+
+        res.writeHead(200, { 'Content-Type': contentType });
+        res.end(data);
+    });
+});
 
 // Create WebSocket server
 const wss = new WebSocket.Server({ server });
@@ -53,7 +165,7 @@ function getRoomUsersInfo(roomId) {
 // Handle WebSocket connections
 wss.on('connection', (ws) => {
     const userId = generateId();
-    console.log(`New connection: ${userId}`);
+    console.log(`New WebSocket connection: ${userId}`);
 
     ws.on('message', (data) => {
         try {
@@ -272,8 +384,11 @@ function handleDisconnect(userId) {
 
 // Start server
 server.listen(PORT, () => {
-    console.log(`🚀 Signaling server running on port ${PORT}`);
-    console.log(`WebSocket URL: ws://localhost:${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`   HTTP: http://localhost:${PORT}`);
+    console.log(`   WebSocket: ws://localhost:${PORT}`);
+    console.log(`   API: http://localhost:${PORT}/api/is-presenting?userId=X`);
+    console.log(`   API: http://localhost:${PORT}/api/active-presenters`);
 });
 
 // Handle server errors

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Active Presenters</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .result {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-live {
+            background: #ff0000;
+            color: white;
+        }
+
+        .status-offline {
+            background: #999;
+            color: white;
+        }
+
+        .user-card {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .user-card.live {
+            border-left-color: #ff0000;
+            background: #fff5f5;
+        }
+
+        .viewer-count {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .watch-btn {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            padding: 8px 16px;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .refresh-info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            color: #1976d2;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 API Test Dashboard</h1>
+            <p>Test the Active Presenter API</p>
+        </div>
+
+        <!-- Test Specific User -->
+        <div class="section">
+            <h2>Test 1: Check Specific User</h2>
+            <div class="test-controls">
+                <input type="text" id="userIdInput" placeholder="Enter User ID (e.g., 1, 123)" value="1">
+                <button onclick="checkUser()">Check User</button>
+            </div>
+            <div id="userResult" class="result">Enter a user ID and click "Check User"</div>
+        </div>
+
+        <!-- Get All Active Presenters -->
+        <div class="section">
+            <h2>Test 2: All Active Presenters</h2>
+            <div class="test-controls">
+                <button onclick="getAllPresenters()">Get Active Presenters</button>
+                <button onclick="toggleAutoRefresh()">
+                    <span id="autoRefreshText">Enable Auto-Refresh</span>
+                </button>
+            </div>
+            <div id="presentersResult" class="result">Click "Get Active Presenters" to see who's live</div>
+            <div id="refreshInfo" class="refresh-info" style="display: none;">
+                Auto-refreshing every 5 seconds...
+            </div>
+        </div>
+
+        <!-- Live User List Demo -->
+        <div class="section">
+            <h2>Demo: User List with Live Status</h2>
+            <p style="margin-bottom: 15px;">This simulates your Gamble Galaxy user list:</p>
+            <div id="userListDemo"></div>
+        </div>
+
+        <!-- Quick Test Links -->
+        <div class="section">
+            <h2>Quick Test Links</h2>
+            <p style="margin-bottom: 15px;">Open these in new tabs to test:</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="https://rouletteshare.onrender.com/?userId=1&action=create" target="_blank">
+                    <button>User 1 - Create Share</button>
+                </a>
+                <a href="https://rouletteshare.onrender.com/?userId=2&action=join&targetUser=1" target="_blank">
+                    <button>User 2 - Watch User 1</button>
+                </a>
+            </div>
+            <p style="margin-top: 15px; color: #666; font-size: 14px;">
+                💡 Tip: Open "User 1 - Create Share" and start sharing. Then refresh this page to see User 1 appear as live!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://rouletteshare.onrender.com';
+        let autoRefreshInterval = null;
+        const currentUserId = 999; // Simulated current user
+
+        // Mock user list for demo
+        const mockUsers = [
+            { id: 1, name: 'Alice' },
+            { id: 2, name: 'Bob' },
+            { id: 123, name: 'Charlie' },
+            { id: 456, name: 'David' },
+            { id: 789, name: 'Eve' }
+        ];
+
+        // Check specific user
+        async function checkUser() {
+            const userId = document.getElementById('userIdInput').value;
+            const resultDiv = document.getElementById('userResult');
+            
+            resultDiv.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/is-presenting?userId=${userId}`);
+                const data = await response.json();
+                
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                
+                // Add visual feedback
+                if (data.isPresenting) {
+                    resultDiv.style.background = '#d4edda';
+                } else {
+                    resultDiv.style.background = '#f8d7da';
+                }
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+                resultDiv.style.background = '#f5f5f5';
+            }
+        }
+
+        // Get all active presenters
+        async function getAllPresenters() {
+            const resultDiv = document.getElementById('presentersResult');
+            
+            resultDiv.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/active-presenters`);
+                const data = await response.json();
+                
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+                
+                // Update user list demo
+                updateUserListDemo(data.presenters);
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Toggle auto-refresh
+        function toggleAutoRefresh() {
+            const button = document.getElementById('autoRefreshText');
+            const info = document.getElementById('refreshInfo');
+            
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                button.textContent = 'Enable Auto-Refresh';
+                info.style.display = 'none';
+            } else {
+                autoRefreshInterval = setInterval(getAllPresenters, 5000);
+                button.textContent = 'Disable Auto-Refresh';
+                info.style.display = 'block';
+                getAllPresenters(); // Get immediately
+            }
+        }
+
+        // Update user list demo
+        function updateUserListDemo(presenters) {
+            const container = document.getElementById('userListDemo');
+            
+            // Create presenter map
+            const presenterMap = {};
+            presenters.forEach(p => {
+                presenterMap[p.userId] = p;
+            });
+            
+            // Render user list
+            const html = mockUsers.map(user => {
+                const presenter = presenterMap[user.id];
+                const isLive = !!presenter;
+                
+                return `
+                    <div class="user-card ${isLive ? 'live' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="font-size: 16px;">${user.name}</strong>
+                                ${isLive ? `
+                                    <span class="status-badge status-live">🔴 LIVE</span>
+                                    <div class="viewer-count">👁️ ${presenter.viewerCount} viewer(s)</div>
+                                ` : `
+                                    <span class="status-badge status-offline">Offline</span>
+                                `}
+                            </div>
+                            ${isLive ? `
+                                <button class="watch-btn" onclick="watchUser(${user.id})">
+                                    👁️ Watch Screen
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html || '<div class="loading">No users to display</div>';
+        }
+
+        // Watch user function
+        function watchUser(targetUserId) {
+            const url = `${API_BASE}/?userId=${currentUserId}&action=join&targetUser=${targetUserId}`;
+            window.open(url, '_blank', 'width=1200,height=800');
+        }
+
+        // Initialize with empty user list
+        updateUserListDemo([]);
+
+        // Auto-load presenters on page load
+        getAllPresenters();
+    </script>
+</body>
+</html>
