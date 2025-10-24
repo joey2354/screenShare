@@ -14,11 +14,13 @@ const ICE_SERVERS = {
 // Global variables
 let ws = null;
 let localStream = null;
+let localAudioStream = null;
 let peerConnections = {};
 let roomId = null;
 let username = null;
 let isPresenter = false;
 let userId = null;
+let isMicActive = false;
 
 // DOM elements
 const usernameInput = document.getElementById('username');
@@ -26,7 +28,9 @@ const roomIdInput = document.getElementById('roomId');
 const connectBtn = document.getElementById('connectBtn');
 const shareBtn = document.getElementById('shareBtn');
 const stopBtn = document.getElementById('stopBtn');
+const micBtn = document.getElementById('micBtn');
 const remoteVideo = document.getElementById('remoteVideo');
+const remoteAudio = document.getElementById('remoteAudio');
 const connectionStatus = document.getElementById('connectionStatus');
 const roleStatus = document.getElementById('roleStatus');
 const roomStatus = document.getElementById('roomStatus');
@@ -96,15 +100,36 @@ function showAutoMessage(message) {
 connectBtn.addEventListener('click', connectToRoom);
 shareBtn.addEventListener('click', startScreenShare);
 stopBtn.addEventListener('click', stopScreenShare);
+if (micBtn) {
+    micBtn.addEventListener('click', toggleMicrophone);
+}
 
 // Connect to room
-function connectToRoom() {
+async function connectToRoom() {
     username = usernameInput.value.trim();
     roomId = roomIdInput.value.trim();
 
     if (!username || !roomId) {
         alert('Please enter both your name and a room ID');
         return;
+    }
+
+    // Request microphone permission early so we can receive viewer audio
+    try {
+        console.log('🎤 Requesting microphone permission for audio reception...');
+        const tempStream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+            }
+        });
+        // Stop the temp stream immediately - we just needed permission
+        tempStream.getTracks().forEach(track => track.stop());
+        console.log('✅ Microphone permission granted');
+    } catch (error) {
+        console.warn('⚠️ Microphone permission denied - you won\'t be able to use audio features:', error);
+        // Continue anyway - they can still screen share without audio
     }
 
     // Connect to WebSocket server
@@ -188,6 +213,7 @@ async function handleSignalingMessage(message) {
                 roleStatus.textContent = 'Viewer';
                 videoTitle.textContent = '📺 Screen Share (Waiting for presenter...)';
                 remoteVideo.srcObject = null;
+                if (remoteAudio) remoteAudio.srcObject = null;
                 
                 if (peerConnections[message.presenterId]) {
                     peerConnections[message.presenterId].close();
@@ -225,13 +251,28 @@ async function createPeerConnection(peerId, isInitiator) {
     if (isPresenter && localStream) {
         localStream.getTracks().forEach(track => {
             pc.addTrack(track, localStream);
+            console.log('Added video track to peer connection');
+        });
+    }
+
+    // Add audio track if microphone is active
+    if (isPresenter && localAudioStream) {
+        localAudioStream.getTracks().forEach(track => {
+            pc.addTrack(track, localAudioStream);
+            console.log('Added audio track to peer connection');
         });
     }
 
     // Handle incoming stream (for viewers)
     pc.ontrack = (event) => {
-        console.log('Received remote track');
-        remoteVideo.srcObject = event.streams[0];
+        console.log('Received remote track:', event.track.kind);
+        
+        if (event.track.kind === 'video') {
+            remoteVideo.srcObject = event.streams[0];
+        } else if (event.track.kind === 'audio' && remoteAudio) {
+            remoteAudio.srcObject = event.streams[0];
+            console.log('Audio track connected');
+        }
     };
 
     // Handle ICE candidates
@@ -330,6 +371,7 @@ async function startScreenShare() {
         roleStatus.textContent = 'Presenter';
         shareBtn.disabled = true;
         stopBtn.disabled = false;
+        if (micBtn) micBtn.disabled = false;
 
         // Notify server
         sendMessage({
@@ -344,11 +386,115 @@ async function startScreenShare() {
     }
 }
 
+// Toggle microphone
+async function toggleMicrophone() {
+    if (!isMicActive) {
+        // Turn microphone ON
+        try {
+            localAudioStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            });
+
+            console.log('🎤 Microphone enabled');
+
+            // Add audio track to all existing peer connections
+            if (isPresenter) {
+                Object.values(peerConnections).forEach(pc => {
+                    localAudioStream.getTracks().forEach(track => {
+                        pc.addTrack(track, localAudioStream);
+                    });
+                });
+
+                // Renegotiate all connections
+                await renegotiateAllConnections();
+            }
+
+            isMicActive = true;
+            if (micBtn) {
+                micBtn.textContent = '🎤 Mic On';
+                micBtn.classList.add('mic-active');
+            }
+
+        } catch (error) {
+            console.error('Microphone error:', error);
+            alert('Could not access microphone. Please check permissions.');
+        }
+    } else {
+        // Turn microphone OFF
+        if (localAudioStream) {
+            localAudioStream.getTracks().forEach(track => {
+                track.stop();
+
+                // Remove track from all peer connections
+                Object.values(peerConnections).forEach(pc => {
+                    const senders = pc.getSenders();
+                    const audioSender = senders.find(s => s.track === track);
+                    if (audioSender) {
+                        pc.removeTrack(audioSender);
+                    }
+                });
+            });
+            localAudioStream = null;
+
+            // Renegotiate all connections
+            if (isPresenter) {
+                await renegotiateAllConnections();
+            }
+        }
+
+        isMicActive = false;
+        if (micBtn) {
+            micBtn.textContent = '🎤 Mic Off';
+            micBtn.classList.remove('mic-active');
+        }
+        console.log('🔇 Microphone disabled');
+    }
+}
+
+// Renegotiate all peer connections
+async function renegotiateAllConnections() {
+    const promises = Object.entries(peerConnections).map(async ([peerId, pc]) => {
+        try {
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+
+            sendMessage({
+                type: 'offer',
+                offer: offer,
+                to: peerId,
+                roomId: roomId
+            });
+
+            console.log(`📤 Sent renegotiation offer to ${peerId}`);
+        } catch (error) {
+            console.error(`Renegotiation error with ${peerId}:`, error);
+        }
+    });
+
+    await Promise.all(promises);
+}
+
 // Stop screen sharing
 function stopScreenShare() {
     if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
         localStream = null;
+    }
+
+    // Stop microphone if active
+    if (localAudioStream) {
+        localAudioStream.getTracks().forEach(track => track.stop());
+        localAudioStream = null;
+        isMicActive = false;
+        if (micBtn) {
+            micBtn.textContent = '🎤 Mic Off';
+            micBtn.classList.remove('mic-active');
+            micBtn.disabled = true;
+        }
     }
 
     // Close all peer connections
@@ -357,6 +503,7 @@ function stopScreenShare() {
 
     // Update UI
     remoteVideo.srcObject = null;
+    if (remoteAudio) remoteAudio.srcObject = null;
     videoTitle.textContent = '📺 Screen Share';
     isPresenter = false;
     roleStatus.textContent = 'Viewer';
@@ -417,13 +564,25 @@ function cleanup() {
         localStream = null;
     }
 
+    if (localAudioStream) {
+        localAudioStream.getTracks().forEach(track => track.stop());
+        localAudioStream = null;
+        isMicActive = false;
+    }
+
     Object.values(peerConnections).forEach(pc => pc.close());
     peerConnections = {};
 
     remoteVideo.srcObject = null;
+    if (remoteAudio) remoteAudio.srcObject = null;
     connectBtn.disabled = false;
     shareBtn.disabled = true;
     stopBtn.disabled = true;
+    if (micBtn) {
+        micBtn.disabled = true;
+        micBtn.textContent = '🎤 Mic Off';
+        micBtn.classList.remove('mic-active');
+    }
     usernameInput.disabled = false;
     roomIdInput.disabled = false;
     roleStatus.textContent = '-';

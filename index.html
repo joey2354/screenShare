@@ -118,6 +118,29 @@
             box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
         }
 
+        .btn-mic {
+            background: #6b7280;
+        }
+
+        .btn-mic:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(107, 114, 128, 0.4);
+        }
+
+        .btn-mic.mic-active {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+        }
+
         .status {
             background: white;
             padding: 20px;
@@ -244,15 +267,18 @@
             <div class="button-group">
                 <button id="connectBtn" class="btn-primary">Connect to Room</button>
                 <button id="shareBtn" class="btn-success" disabled>Start Sharing Screen</button>
+                <button id="micBtn" class="btn-mic" disabled>🎤 Mic Off</button>
                 <button id="stopBtn" class="btn-danger" disabled>Stop Sharing</button>
             </div>
 
             <div class="info-box">
                 <p><strong>📝 Instructions:</strong></p>
                 <p>1. Enter your name and a room ID (create a new one or join existing)</p>
-                <p>2. Click "Connect to Room"</p>
+                <p>2. Click "Connect to Room" (you'll be asked for microphone permission)</p>
                 <p>3. To share: Click "Start Sharing Screen" and select what to share</p>
-                <p>4. To view: Just connect to the same room as the presenter</p>
+                <p>4. To enable your audio: Click "🎤 Mic Off" to turn on your microphone</p>
+                <p>5. To view: Just connect to the same room as the presenter</p>
+                <p><strong>💡 Tip:</strong> Allow microphone access to hear and talk with others!</p>
             </div>
         </div>
 
@@ -284,6 +310,7 @@
         <div class="video-container">
             <h3 id="videoTitle">📺 Screen Share</h3>
             <video id="remoteVideo" autoplay playsinline></video>
+            <audio id="remoteAudio" autoplay></audio>
         </div>
     </div>
 
