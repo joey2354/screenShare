@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Sharing App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .control-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .status {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+        }
+
+        .status h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .status-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .status-value {
+            color: #333;
+        }
+
+        .status-online {
+            color: #4caf50;
+            font-weight: 600;
+        }
+
+        .status-offline {
+            color: #f44336;
+            font-weight: 600;
+        }
+
+        .video-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .video-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        video {
+            width: 100%;
+            background: #000;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .viewer-list {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+        }
+
+        .viewer-list h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .viewer-item {
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #1976d2;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            button {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ Screen Sharing App</h1>
+            <p>Share your screen with multiple viewers in real-time</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="username">Your Name:</label>
+                <input type="text" id="username" placeholder="Enter your name">
+            </div>
+
+            <div class="control-group">
+                <label for="roomId">Room ID:</label>
+                <input type="text" id="roomId" placeholder="Enter or create a room ID">
+            </div>
+
+            <div class="button-group">
+                <button id="connectBtn" class="btn-primary">Connect to Room</button>
+                <button id="shareBtn" class="btn-success" disabled>Start Sharing Screen</button>
+                <button id="stopBtn" class="btn-danger" disabled>Stop Sharing</button>
+            </div>
+
+            <div class="info-box">
+                <p><strong>📝 Instructions:</strong></p>
+                <p>1. Enter your name and a room ID (create a new one or join existing)</p>
+                <p>2. Click "Connect to Room"</p>
+                <p>3. To share: Click "Start Sharing Screen" and select what to share</p>
+                <p>4. To view: Just connect to the same room as the presenter</p>
+            </div>
+        </div>
+
+        <div class="status">
+            <h3>📊 Status</h3>
+            <div class="status-item">
+                <span class="status-label">Connection:</span>
+                <span id="connectionStatus" class="status-value status-offline">Disconnected</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Role:</span>
+                <span id="roleStatus" class="status-value">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Room:</span>
+                <span id="roomStatus" class="status-value">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Viewers in Room:</span>
+                <span id="viewerCount" class="status-value">0</span>
+            </div>
+        </div>
+
+        <div class="viewer-list" id="viewerListContainer" style="display: none;">
+            <h3>👥 Connected Users</h3>
+            <div id="viewerList"></div>
+        </div>
+
+        <div class="video-container">
+            <h3 id="videoTitle">📺 Screen Share</h3>
+            <video id="remoteVideo" autoplay playsinline></video>
+        </div>
+    </div>
+
+    <script src="client.js"></script>
+</body>
+</html>
