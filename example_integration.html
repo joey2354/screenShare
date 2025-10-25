@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Share Integration Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+        .info {
+            background: #e0f2fe;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0284c7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Screen Share Integration</h1>
+        
+        <div class="info">
+            <strong>ℹ️ Info:</strong> This loads the screen share popup from Render.com
+        </div>
+
+        <!-- Your button -->
+        <button onclick="openScreenSharePopup()">
+            📺 Open Screen Share
+        </button>
+
+        <h2 style="margin-top: 30px;">How it works:</h2>
+        <ol>
+            <li>Script loads from Render: <code>https://screenshare-jbdh.onrender.com/screen_share_popup.js</code></li>
+            <li>Function <code>openScreenSharePopup()</code> is available globally</li>
+            <li>Popup checks login via your <code>contest_get_user_id.php</code></li>
+            <li>All screen sharing happens through Render</li>
+        </ol>
+    </div>
+
+    <!-- Load the popup script from Render -->
+    <script src="https://screenshare-jbdh.onrender.com/screen_share_popup.js"></script>
+</body>
+</html>
