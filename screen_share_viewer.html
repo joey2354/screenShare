@@ -77,6 +77,11 @@
             font-weight: bold;
         }
 
+        a.info-value:hover {
+            color: #059669;
+            text-decoration: underline;
+        }
+
         #controls {
             display: flex;
             gap: 10px;
@@ -273,7 +278,7 @@
             </div>
             <div>
                 <div class="info-label">Watching</div>
-                <div class="info-value" id="targetUserName">Loading...</div>
+                <a class="info-value" id="targetUserName" href="#" target="_blank" style="text-decoration: none; color: #10b981; cursor: pointer; display: inline-block;">Loading...</a>
             </div>
             <div>
                 <span id="status" class="status-connecting">Connecting...</span>
@@ -346,11 +351,34 @@
 
         roomId = `room_${targetUser}`;
 
-
+        // Function to fetch username for target user
+        async function fetchTargetUsername() {
+            try {
+                const response = await fetch(`https://rouletteshare.onrender.com/api/is-presenting?userId=${targetUser}`);
+                const data = await response.json();
+                
+                const targetNameEl = document.getElementById('targetUserName');
+                const displayName = data.username || `User ${targetUser}`;
+                targetNameEl.textContent = displayName;
+                targetNameEl.href = `https://gamble-galaxy.com/profile.php?id=${targetUser}`;
+                
+                debugLog(`✅ Fetched username: ${displayName}`);
+            } catch (error) {
+                console.error('Error fetching username:', error);
+                // Fallback to User ID
+                const targetNameEl = document.getElementById('targetUserName');
+                targetNameEl.textContent = `User ${targetUser}`;
+                targetNameEl.href = `https://gamble-galaxy.com/profile.php?id=${targetUser}`;
+            }
+        }
 
         // Update UI
         document.getElementById('viewerName').textContent = myUsername;
         document.getElementById('targetUserName').textContent = `User ${targetUser}`;
+        document.getElementById('targetUserName').href = `https://gamble-galaxy.com/profile.php?id=${targetUser}`;
+        
+        // Fetch the actual username
+        fetchTargetUsername();
 
         // Debug logging
         function debugLog(message) {
@@ -454,7 +482,9 @@
                     if (presenter) {
                         debugLog('🎬 Found existing presenter: ' + presenter.username);
                         presenterUserId = presenter.userId;
-                        document.getElementById('targetUserName').textContent = presenter.username;
+                        const targetNameEl = document.getElementById('targetUserName');
+                        targetNameEl.textContent = presenter.username;
+                        targetNameEl.href = `https://gamble-galaxy.com/profile.php?id=${targetUser}`;
                         updateStatus('Connecting to stream...', 'connecting');
                         
                         // Setup peer connection and send viewer-ready
@@ -480,7 +510,9 @@
                 case 'presenter-started':
                     debugLog('✅ Presenter started: ' + message.presenterName + ' (ID: ' + message.presenterId + ')');
                     presenterUserId = message.presenterId;
-                    document.getElementById('targetUserName').textContent = message.presenterName;
+                    const targetNameEl = document.getElementById('targetUserName');
+                    targetNameEl.textContent = message.presenterName;
+                    targetNameEl.href = `https://gamble-galaxy.com/profile.php?id=${targetUser}`;
                     updateStatus('Connecting to stream...', 'connecting');
                     
                     // Setup peer if needed and send viewer-ready
