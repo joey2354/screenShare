@@ -6,7 +6,8 @@
 </head>
 <body style="background:#111;color:#fff;text-align:center;">
   <h2>📷 Mobile Cam Test</h2>
-  <video id="localVideo" autoplay playsinline muted style="width:90%;border:2px solid #fff;"></video>
+  <video id="localVideo" autoplay playsinline muted style="width:90%; height:auto; border:2px solid #fff;"></video>
+
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
@@ -17,8 +18,11 @@
 
     const localVideo = document.getElementById('localVideo');
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true })
-      .then(stream => {
+    navigator.mediaDevices.getUserMedia({ 
+  video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, 
+  audio: true 
+})
+ .then(stream => {
         localVideo.srcObject = stream;
         stream.getTracks().forEach(track => peer.addTrack(track, stream));
         return peer.createOffer();
