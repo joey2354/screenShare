@@ -31,12 +31,14 @@ socket.on('ice-candidate', data => console.log("ICE received:", data));
   };
 
   // Listen for offer from the mobile cam
-  socket.on('offer', async offer => {
+ socket.on('offer', async offer => {
+    console.log("Offer received:", offer);
     await peer.setRemoteDescription(new RTCSessionDescription(offer));
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
     socket.emit('answer', peer.localDescription);
-  });
+});
+
 
   // ICE candidate exchange
   peer.onicecandidate = e => {
