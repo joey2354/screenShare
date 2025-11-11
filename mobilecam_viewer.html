@@ -13,6 +13,12 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
   const socket = io('https://mobilecam-server.onrender.com'); // use your Render server URL
+socket.on('connect', () => console.log("Viewer connected:", socket.id));
+socket.on('disconnect', () => console.log("Viewer disconnected"));
+socket.on('offer', data => console.log("Offer received:", data));
+socket.on('ice-candidate', data => console.log("ICE received:", data));
+
+  
   const peer = new RTCPeerConnection({
     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
   });
