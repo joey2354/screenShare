@@ -2,33 +2,53 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Mobile Cam Test</title>
+  <title>Mobile Cam Test – Tap to Start</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 </head>
-<body style="background:#111;color:#fff;text-align:center;">
+<body style="background:#111;color:#fff;text-align:center;font-family:sans-serif;">
   <h2>📷 Mobile Cam Test</h2>
-  <video id="localVideo" autoplay playsinline muted style="width:90%; height:auto; border:2px solid #fff;"></video>
-
+  <p>Tap the button below to start your camera</p>
+  <button id="startCam" style="padding:15px 25px;font-size:18px;border:none;border-radius:5px;background:#28a745;color:#fff;cursor:pointer;">
+    Start Camera
+  </button>
+  <br><br>
+  <video id="localVideo" autoplay playsinline muted style="width:90%;height:auto;border:2px solid #fff;"></video>
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-    const socket = io('https://mobilecam-server.onrender.com'); // replace with your live URL
+    const socket = io('https://mobilecam-server.onrender.com'); // replace with your Render URL
     const peer = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     });
 
-    const localVideo = document.getElementById('localVideo');
+    const startButton = document.getElementById("startCam");
+    const localVideo = document.getElementById("localVideo");
 
-    navigator.mediaDevices.getUserMedia({ 
-  video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, 
-  audio: true 
-})
- .then(stream => {
+    startButton.addEventListener("click", async () => {
+      startButton.disabled = true;
+      startButton.innerText = "Starting...";
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: 640, height: 480 },
+          audio: true
+        });
+
         localVideo.srcObject = stream;
+
         stream.getTracks().forEach(track => peer.addTrack(track, stream));
-        return peer.createOffer();
-      })
-      .then(offer => peer.setLocalDescription(offer))
-      .then(() => socket.emit('offer', peer.localDescription));
+
+        const offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+        socket.emit('offer', peer.localDescription);
+
+      } catch (err) {
+        console.error("Error accessing camera:", err);
+        alert("Camera access failed. Please check your permissions.");
+        startButton.disabled = false;
+        startButton.innerText = "Start Camera";
+      }
+    });
 
     socket.on('answer', async data => {
       await peer.setRemoteDescription(new RTCSessionDescription(data));
