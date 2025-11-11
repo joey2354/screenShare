@@ -2,12 +2,12 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Mobile Cam Test – Tap to Start</title>
+  <title>Mobile Cam Live</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 </head>
 <body style="background:#111;color:#fff;text-align:center;font-family:sans-serif;">
-  <h2>📷 Mobile Cam Test</h2>
-  <p>Tap the button below to start your camera</p>
+  <h2>📷 Mobile Cam Live</h2>
+  <p>Tap the button below to start your camera and connect</p>
   <button id="startCam" style="padding:15px 25px;font-size:18px;border:none;border-radius:5px;background:#28a745;color:#fff;cursor:pointer;">
     Start Camera
   </button>
@@ -16,7 +16,9 @@
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script>
-    const socket = io('https://mobilecam-server.onrender.com'); // replace with your Render URL
+    // --- Step 1: Replace this with your Render server URL ---
+    const socket = io('https://mobilecam-server.onrender.com'); 
+
     const peer = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     });
@@ -35,7 +37,6 @@
         });
 
         localVideo.srcObject = stream;
-
         stream.getTracks().forEach(track => peer.addTrack(track, stream));
 
         const offer = await peer.createOffer();
