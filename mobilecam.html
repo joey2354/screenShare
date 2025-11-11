@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 </head>
 <body style="background:#111;color:#fff;text-align:center;font-family:sans-serif;">
+  <div id="log" style="color:#0f0;font-family:monospace; text-align:left; max-height:200px; overflow:auto; background:#000; padding:10px;"></div>
+
   <h2>📷 Mobile Cam Live</h2>
   <p>Tap the button below to start your camera and connect</p>
   <button id="startCam" style="padding:15px 25px;font-size:18px;border:none;border-radius:5px;background:#28a745;color:#fff;cursor:pointer;">
@@ -15,57 +17,74 @@
   <video id="localVideo" autoplay playsinline muted style="width:90%;height:auto;border:2px solid #fff;"></video>
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script>
-    // --- Step 1: Replace this with your Render server URL ---
-    const socket = io('https://mobilecam-server.onrender.com'); 
+ <script>
+  // On-screen log
+  const logDiv = document.getElementById('log');
+  function log(msg) {
+    console.log(msg);
+    logDiv.innerHTML += msg + "<br>";
+  }
 
-    const peer = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-    });
+  // --- Step 1: Replace this with your Render server URL ---
+  const socket = io('https://mobilecam-server.onrender.com'); 
 
-    const startButton = document.getElementById("startCam");
-    const localVideo = document.getElementById("localVideo");
+  const peer = new RTCPeerConnection({
+    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+  });
 
-    startButton.addEventListener("click", async () => {
-      startButton.disabled = true;
-      startButton.innerText = "Starting...";
+  const startButton = document.getElementById("startCam");
+  const localVideo = document.getElementById("localVideo");
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: 640, height: 480 },
-          audio: true
-        });
+  // Log when mobile connects/disconnects
+  socket.on('connect', () => log("Mobile connected: " + socket.id));
+  socket.on('disconnect', () => log("Mobile disconnected"));
 
-        localVideo.srcObject = stream;
-        stream.getTracks().forEach(track => peer.addTrack(track, stream));
+  startButton.addEventListener("click", async () => {
+    startButton.disabled = true;
+    startButton.innerText = "Starting...";
 
-        const offer = await peer.createOffer();
-        await peer.setLocalDescription(offer);
-        socket.emit('offer', peer.localDescription);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: 640, height: 480 },
+        audio: true
+      });
 
-      } catch (err) {
-        console.error("Error accessing camera:", err);
-        alert("Camera access failed. Please check your permissions.");
-        startButton.disabled = false;
-        startButton.innerText = "Start Camera";
-      }
-    });
+      localVideo.srcObject = stream;
+      stream.getTracks().forEach(track => peer.addTrack(track, stream));
 
-    socket.on('answer', async data => {
-      await peer.setRemoteDescription(new RTCSessionDescription(data));
-    });
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+      socket.emit('offer', peer.localDescription);
+      log("Offer sent: " + JSON.stringify(peer.localDescription));
 
-    peer.onicecandidate = e => {
-      if (e.candidate) socket.emit('ice-candidate', e.candidate);
-    };
+    } catch (err) {
+      log("Error accessing camera: " + err.message);
+      startButton.disabled = false;
+      startButton.innerText = "Start Camera";
+    }
+  });
 
-    socket.on('ice-candidate', async data => {
-      try {
-        await peer.addIceCandidate(new RTCIceCandidate(data));
-      } catch (err) {
-        console.error(err);
-      }
-    });
-  </script>
+  socket.on('answer', async data => {
+    await peer.setRemoteDescription(new RTCSessionDescription(data));
+    log("Answer received: " + JSON.stringify(data));
+  });
+
+  peer.onicecandidate = e => {
+    if (e.candidate) {
+      socket.emit('ice-candidate', e.candidate);
+      log("ICE candidate sent: " + JSON.stringify(e.candidate));
+    }
+  };
+
+  socket.on('ice-candidate', async data => {
+    try {
+      await peer.addIceCandidate(new RTCIceCandidate(data));
+      log("ICE candidate received: " + JSON.stringify(data));
+    } catch (err) {
+      log("ICE candidate error: " + err.message);
+    }
+  });
+</script>
+
 </body>
 </html>
