@@ -20,7 +20,7 @@ io.on('connection', socket => {
 
   socket.on('offer', data => socket.broadcast.emit('offer', data));
   socket.on('answer', data => socket.broadcast.emit('answer', data));
-  socket.on('iceCandidate', data => socket.broadcast.emit('iceCandidate', data));
+  socket.on('iceCandidate', data => socket.broadcast.emit('ice-Candidate', data));
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
