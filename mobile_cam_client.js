@@ -511,19 +511,56 @@ function showShareLink() {
 }
 
 // Copy share link
-function copyShareLink() {
+function copyShareLink(event) {
     const text = shareLink.textContent;
-    navigator.clipboard.writeText(text).then(() => {
-        const btn = event.target;
-        const originalText = btn.textContent;
-        btn.textContent = '✓ Copied!';
-        setTimeout(() => {
-            btn.textContent = originalText;
-        }, 2000);
-    }).catch(err => {
-        console.error('Error copying link:', err);
-        alert('Failed to copy link');
-    });
+    const btn = event.target;
+    const originalText = btn.textContent;
+    
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }).catch(err => {
+            console.error('Clipboard API failed:', err);
+            // Fallback to older method
+            fallbackCopyText(text, btn, originalText);
+        });
+    } else {
+        // Fallback for older browsers
+        fallbackCopyText(text, btn, originalText);
+    }
+}
+
+// Fallback copy method for older browsers
+function fallbackCopyText(text, btn, originalText) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        } else {
+            alert('Copy failed. Please manually copy the link.');
+        }
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        alert('Copy failed. Please manually copy the link.');
+    }
+    
+    document.body.removeChild(textArea);
 }
 
 // Initialize on page load
