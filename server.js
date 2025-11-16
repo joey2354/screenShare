@@ -61,13 +61,14 @@ const server = http.createServer((req, res) => {
             if (room.presenter) {
                 const presenter = room.users.get(room.presenter);
                 if (presenter) {
-                    // Extract userId from roomId (format: room_123)
-                    const userId = roomId.replace('room_', '');
+                    // Extract userId from roomId (format: room_123 or mobile_room_123)
+                    const userId = roomId.replace('room_', '').replace('mobile_', '');
                     activePresenters.push({
                         userId,
                         username: presenter.username,
                         roomId,
-                        viewerCount: room.users.size
+                        viewerCount: room.users.size,
+                        type: roomId.startsWith('mobile_room_') ? 'mobile-cam' : 'screen-share'
                     });
                 }
             }
@@ -108,6 +109,14 @@ const server = http.createServer((req, res) => {
         }
     } else if (pathname === '/viewer' || pathname === '/screen_share_viewer.html') {
         filePath = path.join(__dirname, 'screen_share_viewer.html');
+    } else if (pathname === '/mobile_cam.html') {
+        filePath = path.join(__dirname, 'mobile_cam.html');
+    } else if (pathname === '/mobile_cam_viewer.html') {
+        filePath = path.join(__dirname, 'mobile_cam_viewer.html');
+    } else if (pathname === '/mobile_cam_client.js') {
+        filePath = path.join(__dirname, 'mobile_cam_client.js');
+    } else if (pathname === '/mobile_cam_popup.js') {
+        filePath = path.join(__dirname, 'mobile_cam_popup.js');
     } else if (pathname === '/embed.html') {
         filePath = path.join(__dirname, 'embed.html');
     } else if (pathname === '/screen_share_viewer_final.html') {
@@ -465,6 +474,8 @@ server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`   HTTP: http://localhost:${PORT}`);
     console.log(`   WebSocket: ws://localhost:${PORT}`);
+    console.log(`   Screen Share: http://localhost:${PORT}/`);
+    console.log(`   Mobile Cam: http://localhost:${PORT}/mobile_cam.html`);
     console.log(`   API: http://localhost:${PORT}/api/is-presenting?userId=X`);
     console.log(`   API: http://localhost:${PORT}/api/active-presenters`);
 });
