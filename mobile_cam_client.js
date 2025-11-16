@@ -510,57 +510,123 @@ function showShareLink() {
     shareLinkBox.style.display = 'block';
 }
 
-// Copy share link
+// Select share link text (when user clicks on it)
+function selectShareLink() {
+    const range = document.createRange();
+    range.selectNodeContents(shareLink);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
+    // Try to copy automatically when selected
+    try {
+        document.execCommand('copy');
+        shareLink.style.outline = '2px solid #4caf50';
+        setTimeout(() => {
+            shareLink.style.outline = '';
+        }, 1000);
+    } catch (err) {
+        // Silent fail - user can still manually copy the selected text
+        console.log('Auto-copy on select failed:', err);
+    }
+}
+
+// Copy share link - ROBUST VERSION
 function copyShareLink(event) {
     const text = shareLink.textContent;
-    const btn = event.target;
+    const btn = event ? event.target : document.querySelector('.copy-btn');
     const originalText = btn.textContent;
     
-    // Try modern clipboard API first
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => {
-            btn.textContent = '✓ Copied!';
-            setTimeout(() => {
-                btn.textContent = originalText;
-            }, 2000);
-        }).catch(err => {
-            console.error('Clipboard API failed:', err);
-            // Fallback to older method
-            fallbackCopyText(text, btn, originalText);
-        });
+    console.log('Attempting to copy:', text);
+    
+    // Method 1: Modern Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                console.log('Clipboard API success');
+                btn.textContent = '✓ Copied!';
+                btn.style.background = '#4caf50';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Clipboard API failed:', err);
+                fallbackCopyText(text, btn, originalText);
+            });
     } else {
-        // Fallback for older browsers
+        console.log('Using fallback method (not secure context or no clipboard API)');
         fallbackCopyText(text, btn, originalText);
     }
 }
 
-// Fallback copy method for older browsers
+// Fallback copy method
 function fallbackCopyText(text, btn, originalText) {
+    console.log('Trying fallback copy method');
+    
+    // Create a temporary textarea
     const textArea = document.createElement('textarea');
     textArea.value = text;
+    
+    // Make it invisible but accessible
     textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    textArea.style.top = '-999999px';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+    textArea.style.padding = '0';
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+    textArea.style.background = 'transparent';
+    
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
     
     try {
         const successful = document.execCommand('copy');
+        console.log('execCommand copy result:', successful);
+        
         if (successful) {
             btn.textContent = '✓ Copied!';
+            btn.style.background = '#4caf50';
             setTimeout(() => {
                 btn.textContent = originalText;
+                btn.style.background = '';
             }, 2000);
         } else {
-            alert('Copy failed. Please manually copy the link.');
+            console.error('execCommand returned false');
+            showManualCopy(text, btn, originalText);
         }
     } catch (err) {
-        console.error('Fallback copy failed:', err);
-        alert('Copy failed. Please manually copy the link.');
+        console.error('execCommand threw error:', err);
+        showManualCopy(text, btn, originalText);
+    } finally {
+        document.body.removeChild(textArea);
     }
+}
+
+// Last resort - show the text for manual copy
+function showManualCopy(text, btn, originalText) {
+    console.log('Showing manual copy option');
     
-    document.body.removeChild(textArea);
+    // Select the text in the share link div
+    const range = document.createRange();
+    range.selectNodeContents(shareLink);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
+    btn.textContent = '⚠️ Text Selected - Press Ctrl+C';
+    btn.style.background = '#ff9800';
+    
+    setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+        selection.removeAllRanges();
+    }, 5000);
 }
 
 // Initialize on page load

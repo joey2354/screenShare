@@ -246,6 +246,12 @@
             color: #90ee90;
             font-family: monospace;
             font-size: 0.85rem;
+            cursor: text;
+            user-select: all;
+        }
+
+        .share-link:focus {
+            outline: 2px solid #4caf50;
         }
 
         .copy-btn {
@@ -296,8 +302,9 @@
 
             <div class="share-link-box" id="shareLinkBox">
                 <h4>🔗 Share Your Stream</h4>
-                <div class="share-link" id="shareLink"></div>
+                <div class="share-link" id="shareLink" onclick="selectShareLink()" title="Click to select all"></div>
                 <button class="copy-btn" onclick="copyShareLink(event)">📋 Copy Link</button>
+                <p style="margin-top:10px; font-size:0.85rem; color:#aaa;">💡 Tip: Click the link to select it, or use the button to copy</p>
             </div>
         </div>
 
