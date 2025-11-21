@@ -26,7 +26,17 @@ const server = http.createServer((req, res) => {
             return;
         }
         
-        const roomId = `room_${userId}`;
+        // Determine if this is a mobile camera check
+        let roomId;
+        if (userId.startsWith('mobile_')) {
+            // Mobile camera check: mobile_289 -> mobile_room_289
+            const numericId = userId.replace('mobile_', '');
+            roomId = `mobile_room_${numericId}`;
+        } else {
+            // Screen share check: 289 -> room_289
+            roomId = `room_${userId}`;
+        }
+        
         const room = rooms.get(roomId);
         const isPresenting = room && room.presenter !== null;
         const viewerCount = room ? room.users.size : 0;
@@ -39,17 +49,25 @@ const server = http.createServer((req, res) => {
             }
         }
         
+        // Debug logging
+        console.log(`is-presenting check: userId=${userId}, roomId=${roomId}, isPresenting=${isPresenting}, viewerCount=${viewerCount}`);
+        
         res.writeHead(200, { 
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*'  // Allow CORS for Gamble Galaxy
         });
-        res.end(JSON.stringify({ 
+        
+        const responseData = { 
             userId,
             username,
             isPresenting,
             roomId,
             viewerCount: isPresenting ? viewerCount : 0
-        }));
+        };
+        
+        console.log(`is-presenting response:`, JSON.stringify(responseData));
+        
+        res.end(JSON.stringify(responseData));
         return;
     }
     
