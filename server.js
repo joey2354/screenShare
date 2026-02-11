@@ -134,7 +134,9 @@ const server = http.createServer((req, res) => {
     } else if (pathname === '/mobile_cam_client.js') {
         filePath = path.join(__dirname, 'mobile_cam_client.js');
     } else if (pathname === '/mobile_cam_popup.js') {
-        filePath = path.join(__dirname, 'mobile_cam_popup.js');
+        filePath = path.join(__dirname, 'mobile_cam_popup.js');  
+    }  else if (pathname === '/mobile_cam_popup_flipadeals.js') {
+        filePath = path.join(__dirname, 'mobile_cam_popup_flipadeals.js');  
     } else if (pathname === '/embed.html') {
         filePath = path.join(__dirname, 'embed.html');
     } else if (pathname === '/screen_share_viewer_final.html') {
