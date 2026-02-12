@@ -12,7 +12,7 @@ function openMobileCamPopup() {
     const HOSTINGER_URL = 'https://flipadeals.com';  // Your Hostinger domain
     
     // Get user info from your Gamble Galaxy site
-    fetch('https://flipadeals/contest_get_user_id.php', {
+    fetch('https://flipadeals.com/contest_get_user_id.php', {
         credentials: 'include'  // Include cookies for session
     })
     .then(response => response.json())
