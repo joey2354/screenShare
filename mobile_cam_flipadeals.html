@@ -300,12 +300,24 @@
                 <p>4. Your stream will appear on your profile page</p>
             </div>
 
-            <div class="share-link-box" id="shareLinkBox">
-                <h4>🔗 Share Your Stream</h4>
-                <div class="share-link" id="shareLink" onclick="selectShareLink()" title="Click to select all"></div>
-                <button class="copy-btn" onclick="copyShareLink(event)">📋 Copy Link</button>
-                <p style="margin-top:10px; font-size:0.85rem; color:#aaa;">💡 Tip: Click the link to select it, or use the button to copy</p>
-            </div>
+           <div class="share-link-box" id="shareLinkBox">
+    <h4>🔗 Share Your Stream</h4>
+
+    <p><strong>🎰 Gamble Galaxy</strong></p>
+    <div class="share-link" id="gambleLink" onclick="selectShareLink('gambleLink')" title="Click to select all"></div>
+    <button class="copy-btn" onclick="copyShareLink(event, 'gambleLink')">📋 Copy Gamble Link</button>
+
+    <br><br>
+
+    <p><strong>💎 FlipADeals</strong></p>
+    <div class="share-link" id="flipLink" onclick="selectShareLink('flipLink')" title="Click to select all"></div>
+    <button class="copy-btn" onclick="copyShareLink(event, 'flipLink')">📋 Copy FlipADeals Link</button>
+
+    <p style="margin-top:10px; font-size:0.85rem; color:#aaa;">
+        💡 Click a link to select it, or use the button to copy
+    </p>
+</div>
+
         </div>
 
         <div class="status">
