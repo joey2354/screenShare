@@ -503,18 +503,14 @@ async function handleIceCandidate(message) {
 
 // Show share link
 function showShareLink() {
-    // Option 1: PHP viewer with comments (requires guest access)
-    const phpViewerUrl = `https://gamble-galaxy.com/mobile_cam_viewer.php?userId=0&username=Guest&targetUser=${userIdFromUrl}`;
-    
-    // Option 2: Simple Render viewer (no comments, but always works)
-    const renderViewerUrl = `https://screenshare-jbdh.onrender.com/mobile_cam_viewer.html?userId=0&username=Guest&targetUser=${userIdFromUrl}`;
-    
-    // Use PHP viewer by default (has comments)
-    const viewerUrl = phpViewerUrl;
-    
+
+    const currentDomain = window.location.origin;
+
+    const viewerUrl = `${currentDomain}/mobile_cam_viewer.php?userId=0&username=Guest&targetUser=${userIdFromUrl}`;
+
     shareLink.textContent = viewerUrl;
     shareLinkBox.style.display = 'block';
-    
+
     console.log('Share link generated:', viewerUrl);
 }
 
