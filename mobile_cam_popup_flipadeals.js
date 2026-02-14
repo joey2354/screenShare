@@ -39,7 +39,7 @@ function openMobileCamPopup() {
             return;
         } else {
             // Host: Open mobile cam page on Render
-            popupUrl = `${RENDER_URL}/mobile_cam.html?userId=${userId}&username=${encodeURIComponent(username)}&action=create`;
+            popupUrl = `${RENDER_URL}/mobile_cam_flipadeals.html?userId=${userId}&username=${encodeURIComponent(username)}&action=create`;
         }
 
         // Open popup window
@@ -104,7 +104,7 @@ async function openMobileCam(action = 'create', targetUser = null) {
             }
         } else {
             // Host: Open mobile cam page on Render
-            popupUrl = `${RENDER_URL}/mobile_cam.html?userId=${userId}&username=${encodeURIComponent(username)}&action=create`;
+            popupUrl = `${RENDER_URL}/mobile_cam_flipdeals.html?userId=${userId}&username=${encodeURIComponent(username)}&action=create`;
         }
 
         const popup = window.open(
