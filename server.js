@@ -129,8 +129,8 @@ const server = http.createServer((req, res) => {
         filePath = path.join(__dirname, 'screen_share_viewer.html');
     } else if (pathname === '/mobile_cam.html') {
         filePath = path.join(__dirname, 'mobile_cam.html');
-    } else if (pathname === '/mobile_cam.html') {
-        filePath = path.join(__dirname, 'mobile_cam_flipadeals.html');
+    } else if (pathname === '/mobile_cam_flipadeals.html') {
+        filePath = path.join(__dirname, 'mobile_cam_flipadeals.html')
     } else if (pathname === '/mobile_cam_viewer.html') {
         filePath = path.join(__dirname, 'mobile_cam_viewer.html');
     } else if (pathname === '/mobile_cam_client.js') {
