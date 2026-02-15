@@ -279,6 +279,26 @@ function handleMessage(ws, userId, message) {
             }
             break;
 
+        case 'request-stream':
+            // Viewer is requesting stream from an already-active presenter
+            console.log(`User ${userId} requesting stream from room ${message.roomId}`);
+            const requestRoom = rooms.get(message.roomId);
+            if (requestRoom && requestRoom.presenter) {
+                console.log(`Forwarding request-stream to presenter ${requestRoom.presenter}`);
+                sendToUser(requestRoom.presenter, {
+                    type: 'request-stream',
+                    from: userId,
+                    roomId: message.roomId
+                });
+            } else {
+                console.log(`No presenter found in room ${message.roomId}`);
+                sendToUser(userId, {
+                    type: 'error',
+                    message: 'No active presenter in this room'
+                });
+            }
+            break;
+
         case 'offer':
         case 'answer':
         case 'ice-candidate':
@@ -333,12 +353,24 @@ function handleJoin(ws, userId, message) {
 
     console.log(`User ${username} (${userId}) joined room ${roomId}`);
 
+    // Check if there's an active presenter
+    const presenterActive = room.presenter !== null;
+    let presenterName = null;
+    if (presenterActive) {
+        const presenter = room.users.get(room.presenter);
+        if (presenter) {
+            presenterName = presenter.username;
+        }
+    }
+
     // Send confirmation to user
     ws.send(JSON.stringify({
         type: 'joined',
         roomId,
         userId,
-        users: getRoomUsersInfo(roomId)
+        users: getRoomUsersInfo(roomId),
+        presenterActive: presenterActive,
+        presenterName: presenterName
     }));
 
     // Notify others in room about new user
