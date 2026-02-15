@@ -125,32 +125,27 @@ const server = http.createServer((req, res) => {
             // This is a host or regular access
             filePath = path.join(__dirname, 'index.html');
         }
-    } else if (pathname === '/viewer' || pathname === '/screen_share_viewer.html') {
-        filePath = path.join(__dirname, 'screen_share_viewer.html');
-    } else if (pathname === '/mobile_cam.html') {
-        filePath = path.join(__dirname, 'mobile_cam.html');
-    } else if (pathname === '/mobile_cam_flipadeals.html') {
-        filePath = path.join(__dirname, 'mobile_cam_flipadeals.html')
-    } else if (pathname === '/mobile_cam_viewer.html') {
-        filePath = path.join(__dirname, 'mobile_cam_viewer.html');
-    } else if (pathname === '/mobile_cam_client.js') {
-        filePath = path.join(__dirname, 'mobile_cam_client.js');
-    } else if (pathname === '/mobile_cam_popup.js') {
-        filePath = path.join(__dirname, 'mobile_cam_popup.js');
-	} else if (pathname === '/mobile_cam_popup_flipadeals.js') {
-        filePath = path.join(__dirname, 'mobile_cam_popup_flipadeals.js');
-    } else if (pathname === '/embed.html') {
-        filePath = path.join(__dirname, 'embed.html');
-    } else if (pathname === '/screen_share_viewer_final.html') {
-        filePath = path.join(__dirname, 'screen_share_viewer_final.html');
-    } else if (pathname === '/screen_share_viewer_embed.html') {
-        filePath = path.join(__dirname, 'screen_share_viewer_embed.html');
-    } else if (pathname === '/client.js') {
-        filePath = path.join(__dirname, 'client.js');
-    } else if (pathname === '/screen_share_popup.js') {
-        // Serve popup JS with CORS for external sites
-        filePath = path.join(__dirname, 'screen_share_popup.js');
-    } else {
+    } 
+    else if (pathname === '/viewer' || pathname === '/screen_share_viewer.html') { filePath = path.join(__dirname, 'screen_share_viewer.html');} 
+    else if (pathname === '/mobile_cam.html') {filePath = path.join(__dirname, 'mobile_cam.html');} 
+    else if (pathname === '/mobile_cam_flipadeals.html') { filePath = path.join(__dirname, 'mobile_cam_flipadeals.html')} 
+    else if (pathname === '/mobile_cam_viewer.html') { filePath = path.join(__dirname, 'mobile_cam_viewer.html');} 
+    else if (pathname === '/mobile_cam_viewer_flipadeals.html') { filePath = path.join(__dirname, 'mobile_cam_viewer_flipadeals.html');}
+    else if (pathname === '/mobile_cam_client.js') { filePath = path.join(__dirname, 'mobile_cam_client.js');} 
+    else if (pathname === '/mobile_cam_client_flipadeals.js') { filePath = path.join(__dirname, 'mobile_cam_client_flipadeals.js');} 
+    else if (pathname === '/mobile_cam_popup.js') { filePath = path.join(__dirname, 'mobile_cam_popup.js');} 
+    else if (pathname === '/mobile_cam_popup_flipadeals.js') { filePath = path.join(__dirname, 'mobile_cam_popup_flipadeals.js');} 
+    else if (pathname === '/embed.html') { filePath = path.join(__dirname, 'embed.html');} 
+    else if (pathname === '/embed_flipadeals.html') { filePath = path.join(__dirname, 'embed_flipadeals.html');}
+    else if (pathname === '/screen_share_viewer_final.html') { filePath = path.join(__dirname, 'screen_share_viewer_final.html');} 
+    else if (pathname === '/screen_share_viewer_final_flipadeals.html') { filePath = path.join(__dirname, 'screen_share_viewer_final_flipadeals.html');} 
+    else if (pathname === '/screen_share_viewer_embed.html') { filePath = path.join(__dirname, 'screen_share_viewer_embed.html');} 
+    else if (pathname === '/screen_share_viewer_embed_flipadeals.html') { filePath = path.join(__dirname, 'screen_share_viewer_embed_flipadeals.html');} 
+    else if (pathname === '/client.js') { filePath = path.join(__dirname, 'client.js');} 
+    else if (pathname === '/client_flipadeals.js') { filePath = path.join(__dirname, 'client_flipadeals.js');} 
+    else if (pathname === '/screen_share_popup.js') { filePath = path.join(__dirname, 'screen_share_popup.js');} 
+    else if (pathname === '/screen_share_popup_flipadeals.js') { filePath = path.join(__dirname, 'screen_share_popup_flipadeals.js');}
+    else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('404 Not Found');
         return;
