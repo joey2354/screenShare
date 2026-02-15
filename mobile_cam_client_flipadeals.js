@@ -160,8 +160,16 @@ function handleMessage(message) {
             break;
 
         case 'viewer-ready':
-            // A viewer is ready to receive our stream
-            console.log('Viewer ready:', message.from);
+            // A viewer is ready to receive our stream (from presenter-started event)
+            console.log('Viewer ready (new viewer during stream):', message.from);
+            if (isPresenting) {
+                createPeerConnection(message.from);
+            }
+            break;
+
+        case 'request-stream':
+            // A viewer joined an already-active stream and is requesting it
+            console.log('Stream requested (viewer joined existing stream):', message.from);
             if (isPresenting) {
                 createPeerConnection(message.from);
             }
@@ -433,6 +441,7 @@ async function createPeerConnection(viewerId) {
     if (localStream) {
         localStream.getTracks().forEach(track => {
             pc.addTrack(track, localStream);
+            console.log('Added track to peer connection:', track.kind);
         });
     }
 
@@ -447,9 +456,14 @@ async function createPeerConnection(viewerId) {
         }
     };
 
+    // Handle ICE connection state
+    pc.oniceconnectionstatechange = () => {
+        console.log(`Viewer ${viewerId} ICE state:`, pc.iceConnectionState);
+    };
+
     // Handle connection state
     pc.onconnectionstatechange = () => {
-        console.log('Peer connection state:', pc.connectionState);
+        console.log(`Viewer ${viewerId} connection state:`, pc.connectionState);
     };
 
     // Create and send offer
